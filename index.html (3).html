@@ -276,6 +276,7 @@
     border-radius:40px;font-size:0.85rem;z-index:9999;
     transition:transform 0.4s cubic-bezier(0.22,1,0.36,1);pointer-events:none;
     letter-spacing:0.04em;
+    text-align: center;
   }
   .toast.show{transform:translateX(-50%) translateY(0);}
 </style>
@@ -516,23 +517,32 @@ function sendMessage() {
       body: JSON.stringify({
           name: name,
           email: email,
-          message: msg
+          message: msg,
+          _subject: "New Message from Portfolio Website",
+          _captcha: "false"
       })
   })
   .then(response => response.json())
   .then(data => {
-      showToast('Message sent! Keith will reply soon ✓');
-      // Clear the form
-      document.getElementById('name').value='';
-      document.getElementById('email').value='';
-      document.getElementById('message').value='';
+      // FormSubmit returns success status as a boolean or string
+      if (data.success === true || data.success === "true") {
+          showToast('Message sent! Keith will reply soon ✓');
+          document.getElementById('name').value='';
+          document.getElementById('email').value='';
+          document.getElementById('message').value='';
+      } else {
+          // If the form isn't activated yet, display a clear warning
+          showToast('Error: Keith must check his email to activate the form!');
+          console.log("FormSubmit Error:", data);
+      }
       
       // Reset button
       btn.innerText = 'Send Message →';
       btn.disabled = false;
   })
   .catch(error => {
-      showToast('Oops! Something went wrong. Try again.');
+      showToast('Network error. Please try again later.');
+      console.error(error);
       btn.innerText = 'Send Message →';
       btn.disabled = false;
   });
@@ -542,7 +552,9 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+  
+  // Extend toast time slightly so they can read the error if it fails
+  setTimeout(() => t.classList.remove('show'), 4000); 
 }
 </script>
 
