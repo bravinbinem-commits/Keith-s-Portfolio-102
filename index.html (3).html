@@ -233,6 +233,12 @@
   }
   .form-group input::placeholder,.form-group textarea::placeholder{color:var(--text-muted);}
   .form-submit{width:100%;}
+  
+  /* Updating button state for sending */
+  .btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 
   /* ── FOOTER ── */
   footer{
@@ -467,7 +473,7 @@
               <label for="message">Message</label>
               <textarea id="message" rows="5" placeholder="Tell me about the opportunity…"></textarea>
             </div>
-            <button class="btn-primary form-submit" onclick="sendMessage()">Send Message →</button>
+            <button id="submitBtn" class="btn-primary form-submit" onclick="sendMessage()">Send Message →</button>
         </div>
      </div>
   </div>
@@ -489,12 +495,49 @@ function sendMessage() {
   const name = document.getElementById('name').value.trim();
   const email = document.getElementById('email').value.trim();
   const msg = document.getElementById('message').value.trim();
-  if (!name || !email || !msg) { showToast('Please fill all fields.'); return; }
-  showToast('Message sent! Keith will reply soon ✓');
-  document.getElementById('name').value='';
-  document.getElementById('email').value='';
-  document.getElementById('message').value='';
+  const btn = document.getElementById('submitBtn');
+
+  if (!name || !email || !msg) { 
+      showToast('Please fill all fields.'); 
+      return; 
+  }
+
+  // Visual feedback while sending
+  btn.innerText = 'Sending...';
+  btn.disabled = true;
+
+  // Sending the data to FormSubmit
+  fetch("https://formsubmit.co/ajax/keithjob9@gmail.com", {
+      method: "POST",
+      headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+          name: name,
+          email: email,
+          message: msg
+      })
+  })
+  .then(response => response.json())
+  .then(data => {
+      showToast('Message sent! Keith will reply soon ✓');
+      // Clear the form
+      document.getElementById('name').value='';
+      document.getElementById('email').value='';
+      document.getElementById('message').value='';
+      
+      // Reset button
+      btn.innerText = 'Send Message →';
+      btn.disabled = false;
+  })
+  .catch(error => {
+      showToast('Oops! Something went wrong. Try again.');
+      btn.innerText = 'Send Message →';
+      btn.disabled = false;
+  });
 }
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
